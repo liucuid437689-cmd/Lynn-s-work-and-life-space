@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS V7.0</title>
+    <title>My Life OS V7.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -40,29 +40,37 @@
         .card-header {
             font-size: 12px; font-weight: 700; color: var(--text-sub);
             margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            text-transform: uppercase; letter-spacing: 0.5px; justify-content: space-between;
         }
 
-        /* --- 1. 日历模块样式 --- */
+        /* --- 组件样式 --- */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; }
         .cal-date { font-size: 12px; padding: 5px 0; border-radius: 8px; }
         .cal-today { background: var(--accent-blue); color: white; font-weight: bold; }
 
-        /* --- 2. 备忘录/打勾列表 --- */
         .todo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .todo-check { width: 18px; height: 18px; border: 1.5px solid #ddd; border-radius: 4px; cursor: pointer; }
+        .todo-check { width: 18px; height: 18px; border: 1.5px solid #ddd; border-radius: 4px; cursor: pointer; flex-shrink: 0;}
         .todo-check.done { background: var(--accent-blue); border-color: var(--accent-blue); position: relative; }
         .todo-check.done::after { content: '✓'; color: white; font-size: 12px; position: absolute; left: 3px; top: -1px; }
         .todo-text { font-size: 14px; flex: 1; border: none; background: transparent; }
         .todo-text.done { text-decoration: line-through; color: var(--text-sub); }
 
-        /* --- 通用组件 --- */
         select, input, textarea {
             background: #f2f2f7; border: none; padding: 10px; border-radius: 10px;
             font-size: 14px; width: 100%; box-sizing: border-box;
         }
+        select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent-blue); }
+
         .btn-small { padding: 6px 12px; border-radius: 8px; border: none; color: white; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .btn-export { background: #5856d6; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
+        /* --- 翻译结果样式 --- */
+        #transResult {
+            margin-top:10px; font-size:13px; color:#333; 
+            background:#f0f7ff; padding:10px; border-radius:8px; 
+            border-left:3px solid var(--accent-blue); min-height: 40px; line-height: 1.5;
+        }
 
         /* --- 导航 --- */
         .nav-bar {
@@ -76,9 +84,9 @@
         .nav-item.active { color: var(--accent-blue); }
         .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
 
-        /* 动画 */
         .page { display: none; }
-        .page.active { display: block; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -93,13 +101,12 @@
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-red)">
                 <div class="card-header">📌 Weekly Focus</div>
-                <div id="todoContainer">
-                    </div>
+                <div id="todoContainer"></div>
                 <button class="btn-small" style="background:var(--accent-red); margin-top:5px; align-self:flex-start" onclick="addTodo()">+ Add Task</button>
             </div>
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-green)">
-                <div class="card-header">📊 Weekly Habits (Mon-Sun)</div>
+                <div class="card-header">📊 Weekly Habits</div>
                 <div id="habitContainer"></div>
             </div>
 
@@ -128,30 +135,46 @@
 
             <div class="card full-width" style="border-top: 4px solid #5856d6">
                 <div class="card-header">✍️ Daily Review</div>
-                <textarea id="dailyReviewInput" placeholder="今天有什么值得记录的？(保存后可在 Library 查看)" style="height:60px; resize:none;"></textarea>
+                <textarea id="dailyReviewInput" placeholder="今天有什么值得记录的？" style="height:60px; resize:none;"></textarea>
                 <button onclick="saveReview()" style="background:#5856d6; color:white; border:none; border-radius:8px; padding:8px; margin-top:8px; font-weight:600;">Save Review</button>
             </div>
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
                 <div class="card-header">🌐 Translator (CN-EN)</div>
-                <textarea id="transInput" style="height:50px; resize:none;" placeholder="输入中文..."></textarea>
+                <textarea id="transInput" style="height:50px; resize:none;" placeholder="输入中文想法..."></textarea>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
                     <button class="btn-small" style="background:var(--accent-blue)" onclick="doTrans('oral')">口语</button>
                     <button class="btn-small" style="background:#5856d6" onclick="doTrans('email')">邮件</button>
-                    <button class="btn-small" style="background:#1c1c1e" onclick="doTrans('presentation')">演示</button>
+                    <button class="btn-small" style="background:#1c1c1e" onclick="doTrans('ppt')">演示</button>
                 </div>
-                <div id="transResult" style="margin-top:10px; font-size:12px; color:#555; background:#f0f7ff; padding:8px; border-radius:8px; border-left:3px solid var(--accent-blue)">...</div>
+                <div id="transResult">翻译结果将在此显示...</div>
             </div>
 
         </div>
     </div>
 
     <div id="page-stats" class="page">
-        <div class="card full-width"><canvas id="pieChart" style="max-height: 250px;"></canvas></div>
-        <div class="card full-width" style="margin-top:15px"><canvas id="barChart" style="max-height: 250px;"></canvas></div>
+        <div class="card full-width">
+            <div class="card-header">🕒 Time Distribution</div>
+            <div style="height:250px; position:relative;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+        <div class="card full-width" style="margin-top:15px">
+             <div class="card-header">📈 7-Day Trend</div>
+             <div style="height:250px; position:relative;">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <div id="page-library" class="page">
+        <div class="card full-width" style="background:transparent; box-shadow:none; padding:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0; font-size:20px;">Library</h2>
+                <button class="btn-export" onclick="exportData()">📥 Export Data</button>
+            </div>
+        </div>
         <div id="libraryContainer"></div>
     </div>
 
@@ -163,15 +186,15 @@
     </div>
 
 <script>
-    // --- 1. 初始化 & 日历逻辑 ---
+    // --- 1. 日历逻辑 ---
     function initCalendar() {
         const d = new Date(), month = d.getMonth(), year = d.getFullYear();
-        const firstDay = new Date(year, month, 1).getDay(); // 0 是周日
+        const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const container = document.getElementById('calendarGrid');
-        document.getElementById('calMonthName').innerText = d.toLocaleString('default', { month: 'long' }) + ' ' + year;
+        document.getElementById('calMonthName').innerText = d.toLocaleString('default', { month: 'short' }) + ' ' + year;
         
-        const heads = ['日','一','二','三','四','五','六'];
+        const heads = ['S','M','T','W','T','F','S'];
         container.innerHTML = heads.map(h => `<div class="cal-day-head">${h}</div>`).join('');
         
         for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
@@ -181,7 +204,7 @@
         }
     }
 
-    // --- 2. 备忘录逻辑 (Weekly Focus) ---
+    // --- 2. 备忘录逻辑 ---
     let todos = JSON.parse(localStorage.getItem('todos_v7') || '[]');
     function renderTodos() {
         const container = document.getElementById('todoContainer');
@@ -199,7 +222,7 @@
     function deleteTodo(i) { todos.splice(i, 1); saveTodos(); }
     function saveTodos() { localStorage.setItem('todos_v7', JSON.stringify(todos)); renderTodos(); }
 
-    // --- 3. 习惯打卡 (V6 逻辑) ---
+    // --- 3. 习惯打卡 ---
     const HABITS = ["多喝水 💧", "运动30min 🏃", "抗糖饮食 🍬", "极简表达 🗣️", "快速行动 ⚡"];
     let hData = JSON.parse(localStorage.getItem('habits_v7') || '{}');
     const getWeekKey = () => {
@@ -210,15 +233,15 @@
     if(!hData[wkKey]) hData[wkKey] = HABITS.map(() => Array(7).fill(false));
 
     function renderHabits() {
-        const todayIdx = (new Date().getDay() || 7) - 1;
+        const todayIdx = (new Date().getDay() || 7) - 1; // 周一为0
         document.getElementById('habitContainer').innerHTML = HABITS.map((name, hIdx) => `
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f2f2f7;">
-                <div style="font-size:13px; font-weight:600; width:80px;">${name}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f2f2f7;">
+                <div style="font-size:12px; font-weight:600; width:80px;">${name}</div>
                 <div style="display:flex; gap:5px;">
-                    ${[0,1,2,3,4,5,6].map(dIdx => {
+                    ${['一','二','三','四','五','六','日'].map((label, dIdx) => {
                         const done = hData[wkKey][hIdx][dIdx];
                         const active = dIdx === todayIdx;
-                        return `<div onclick="toggleHabit(${hIdx},${dIdx})" style="width:28px; height:28px; border-radius:50%; border:1.5px solid ${active?'#000':'#e5e5ea'}; background:${done?'var(--accent-green)':'white'}; color:${done?'white':'#ccc'}; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer;">${done?'✓':['一','二','三','四','五','六','日'][dIdx]}</div>`;
+                        return `<div onclick="toggleHabit(${hIdx},${dIdx})" style="width:26px; height:26px; border-radius:50%; border:1.5px solid ${active?'#000':'#e5e5ea'}; background:${done?'var(--accent-green)':'white'}; color:${done?'white':'#ddd'}; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; font-weight:bold;">${done?'✓':label}</div>`;
                     }).join('')}
                 </div>
             </div>
@@ -250,24 +273,40 @@
         alert('Review Saved!');
     }
 
-    // --- 5. 翻译 (V6 逻辑) ---
+    // --- 5. 翻译 (修复后逻辑) ---
     async function doTrans(type) {
         const input = document.getElementById('transInput').value.trim();
         const key = localStorage.getItem('dk_v7');
-        if(!input || !key) return alert("Key or Input Missing");
-        document.getElementById('transResult').innerText = "Thinking...";
-        const prompts = { oral: "地道口语", email: "商务邮件", presentation: "PPT演说" };
+        if(!input || !key) return alert("请输入内容并点击右下角设置 Key");
+        
+        const resBox = document.getElementById('transResult');
+        resBox.innerText = "Thinking...";
+        
+        // 区分度极强的 Prompt
+        const prompts = { 
+            oral: "你是一个地道的美国人。将用户的话翻译成自然的口语（Oral English），用于同事间轻松交谈，不要太正式。", 
+            email: "你是一个资深商务顾问。将用户的话翻译成正式、得体的商务邮件（Business Email），使用专业的职场句式。", 
+            ppt: "你是一个TED演讲教练。将用户的话翻译成PPT演示文稿（Presentation）上的短句，要求极简、有力（Punchy）、使用强动词。" 
+        };
+        
         try {
             const res = await fetch("https://api.deepseek.com/chat/completions", {
-                method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
-                body:JSON.stringify({model:"deepseek-chat",messages:[{role:"system",content:`你是一个商务英语专家。翻译：【${prompts[type]}】`},{role:"user",content:input}]})
+                method:"POST", 
+                headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
+                body:JSON.stringify({
+                    model:"deepseek-chat",
+                    messages:[
+                        {role:"system",content:prompts[type]},
+                        {role:"user",content:input}
+                    ]
+                })
             });
             const d = await res.json();
-            document.getElementById('transResult').innerText = d.choices[0].message.content;
-        } catch(e) { document.getElementById('transResult').innerText = "Error"; }
+            resBox.innerText = d.choices[0].message.content;
+        } catch(e) { resBox.innerText = "Error: API 连接失败，请检查 Key 或网络。"; }
     }
 
-    // --- 计时器逻辑 (简化版) ---
+    // --- 6. 计时器 ---
     let tInt = null, tActive = false, tStart = 0;
     function toggleTimer() {
         if(!tActive) {
@@ -277,33 +316,95 @@
                 document.getElementById('timerDisplay').innerText = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
             }, 1000);
             document.getElementById('timerBtn').innerText = "Stop";
+            document.getElementById('timerBtn').style.background = "#ff3b30";
         } else {
             clearInterval(tInt); tActive = false;
             document.getElementById('timerBtn').innerText = "Start";
+            document.getElementById('timerBtn').style.background = "var(--accent-orange)";
             const recs = JSON.parse(localStorage.getItem('timer_v7') || '[]');
             recs.push({c: document.getElementById('timerCategory').value, ms: Date.now()-tStart, d: new Date().toISOString()});
             localStorage.setItem('timer_v7', JSON.stringify(recs));
         }
     }
 
-    // --- 页面切换 ---
+    // --- 7. 图表逻辑 (修复版) ---
+    let pChart = null, bChart = null;
+    function renderCharts() {
+        const logs = JSON.parse(localStorage.getItem('timer_v7') || '[]');
+        if(logs.length === 0) return; // 无数据不渲染
+
+        // 饼图数据
+        const cats = {}; 
+        logs.forEach(l => { cats[l.c] = (cats[l.c]||0) + l.ms; });
+
+        // 柱状图数据 (最近7天)
+        const days = {};
+        const labels = [];
+        for(let i=6; i>=0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            const k = d.toISOString().split('T')[0];
+            labels.push(d.getDate() + '日');
+            days[k] = 0;
+        }
+        logs.forEach(l => {
+            const k = l.d.split('T')[0];
+            if(days[k] !== undefined) days[k] += l.ms;
+        });
+
+        // 销毁旧图表防止报错
+        if(pChart) pChart.destroy();
+        if(bChart) bChart.destroy();
+
+        // 渲染饼图
+        pChart = new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats).map(v=>(v/60000).toFixed(1)), backgroundColor: ['#ff9500','#007aff','#34c759','#af52de'] }] },
+            options: { maintainAspectRatio: false }
+        });
+
+        // 渲染柱状图
+        bChart = new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Minutes', data: Object.values(days).map(v=>(v/60000).toFixed(0)), backgroundColor: '#007aff' }] },
+            options: { maintainAspectRatio: false, scales: {y:{beginAtZero:true}} }
+        });
+    }
+
+    // --- 8. 页面切换 & 导出 ---
     function switchPage(p, el) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.getElementById('page-'+p).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         el.classList.add('active');
+        if(p === 'stats') renderCharts();
         if(p === 'library') renderLibrary();
     }
+    
     function renderLibrary() {
         const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
         document.getElementById('libraryContainer').innerHTML = logs.map(l => `
-            <div class="card" style="margin-bottom:10px;">
-                <div style="font-size:14px;">${l.content}</div>
+            <div class="card" style="margin-bottom:10px; border-left: 4px solid ${l.type==='review'?'#5856d6':'#af52de'}">
+                <div style="font-size:14px; white-space: pre-wrap;">${l.content}</div>
                 <div style="font-size:10px; color:#aaa; margin-top:5px;">${l.date}</div>
             </div>
         `).join('');
     }
-    function setApiKey() { const k = prompt("Key:"); if(k) localStorage.setItem('dk_v7', k.trim()); }
+
+    function exportData() {
+        const data = {
+            todos: JSON.parse(localStorage.getItem('todos_v7')),
+            habits: JSON.parse(localStorage.getItem('habits_v7')),
+            timer: JSON.parse(localStorage.getItem('timer_v7')),
+            logs: JSON.parse(localStorage.getItem('logs_v7'))
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `LifeOS_Data_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
+
+    function setApiKey() { const k = prompt("Enter Key:"); if(k) localStorage.setItem('dk_v7', k.trim()); }
 
     window.onload = () => { initCalendar(); renderTodos(); renderHabits(); };
 </script>
