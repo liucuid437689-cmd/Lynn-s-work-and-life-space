@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS V6.0</title>
+    <title>My Life OS V7.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -17,6 +17,7 @@
             --accent-green: #34c759;
             --accent-orange: #ff9500;
             --accent-purple: #af52de;
+            --accent-red: #ff3b30;
             --nav-height: 75px;
         }
 
@@ -24,20 +25,8 @@
             margin: 0; padding: 15px;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
-            padding-bottom: calc(var(--nav-height) + 20px);
+            padding-bottom: calc(var(--nav-height) + 30px);
         }
-
-        /* --- 顶部名言 --- */
-        .quote-banner {
-            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
-            color: white; padding: 18px; border-radius: 18px;
-            margin-bottom: 15px; text-align: center; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .quote-text { font-size: 15px; font-weight: 600; line-height: 1.4; }
-
-        .page { display: none; opacity: 0; transition: opacity 0.3s ease; }
-        .page.active { display: block; opacity: 1; }
 
         /* --- 布局系统 --- */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -50,43 +39,32 @@
         }
         .card-header {
             font-size: 12px; font-weight: 700; color: var(--text-sub);
-            margin-bottom: 12px; display: flex; align-items: center; gap: 5px;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        /* --- 周打卡样式 --- */
-        .habit-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 0; border-bottom: 1px solid #f2f2f7;
-        }
-        .habit-info { font-size: 14px; font-weight: 600; width: 100px; }
-        .week-dots { display: flex; gap: 6px; flex: 1; justify-content: flex-end; }
-        .dot {
-            width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #e5e5ea;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 700; color: #aeaeb2; cursor: pointer;
-            transition: all 0.2s; background: white;
-        }
-        .dot.active-day { border-color: var(--text-main); border-width: 2px; color: var(--text-main); }
-        .dot.done { background: var(--accent-green); border-color: var(--accent-green); color: white; }
+        /* --- 1. 日历模块样式 --- */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; }
+        .cal-date { font-size: 12px; padding: 5px 0; border-radius: 8px; }
+        .cal-today { background: var(--accent-blue); color: white; font-weight: bold; }
 
-        /* --- 计时器与笔记 --- */
-        .timer-display { font-size: 32px; font-weight: 800; text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
-        .small-select { font-size: 13px; padding: 8px; border-radius: 10px; background: #f2f2f7; border: none; width: 100%; }
-        
-        /* --- 翻译助手增强 --- */
-        .trans-textarea { height: 60px; font-size: 14px; padding: 10px; border-radius: 12px; background: #f2f2f7; border: none; resize: none; width: 100%; box-sizing: border-box; }
-        .trans-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
-        .trans-btn { 
-            padding: 8px; border-radius: 8px; border: none; color: white; font-size: 12px; font-weight: 600; cursor: pointer;
-            background: var(--accent-blue);
-        }
-        .trans-result { 
-            margin-top: 10px; padding: 10px; border-radius: 10px; background: #f0f7ff; 
-            font-size: 13px; color: #004e9a; line-height: 1.4; min-height: 40px; border-left: 3px solid var(--accent-blue);
-        }
+        /* --- 2. 备忘录/打勾列表 --- */
+        .todo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .todo-check { width: 18px; height: 18px; border: 1.5px solid #ddd; border-radius: 4px; cursor: pointer; }
+        .todo-check.done { background: var(--accent-blue); border-color: var(--accent-blue); position: relative; }
+        .todo-check.done::after { content: '✓'; color: white; font-size: 12px; position: absolute; left: 3px; top: -1px; }
+        .todo-text { font-size: 14px; flex: 1; border: none; background: transparent; }
+        .todo-text.done { text-decoration: line-through; color: var(--text-sub); }
 
-        /* --- 底部导航 --- */
+        /* --- 通用组件 --- */
+        select, input, textarea {
+            background: #f2f2f7; border: none; padding: 10px; border-radius: 10px;
+            font-size: 14px; width: 100%; box-sizing: border-box;
+        }
+        .btn-small { padding: 6px 12px; border-radius: 8px; border: none; color: white; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+        /* --- 导航 --- */
         .nav-bar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 380px; height: 65px;
@@ -98,75 +76,83 @@
         .nav-item.active { color: var(--accent-blue); }
         .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
 
-        .btn-action { background: var(--accent-orange); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; width: 100%; }
-
-        @media (max-width: 350px) { .habit-info { font-size: 12px; width: 70px; } .dot { width: 25px; height: 25px; } }
+        /* 动画 */
+        .page { display: none; }
+        .page.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div class="quote-banner" onclick="refreshQuote()">
-        <div class="quote-text" id="dailyQuote">"Done is better than perfect."</div>
-    </div>
-
     <div id="page-home" class="page active">
         <div class="grid-container">
             
-            <div class="card full-width" style="border-top: 4px solid var(--accent-green)">
-                <div class="card-header">📅 Weekly Habits <span id="currentWeekRange" style="margin-left:auto; font-weight:normal; opacity:0.6"></span></div>
-                <div id="habitContainer">
-                    </div>
+            <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
+                <div class="card-header">📅 <span id="calMonthName">Calendar</span></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
-            <div class="card" style="border-top: 4px solid var(--accent-orange); height: 240px;">
+            <div class="card full-width" style="border-top: 4px solid var(--accent-red)">
+                <div class="card-header">📌 Weekly Focus</div>
+                <div id="todoContainer">
+                    </div>
+                <button class="btn-small" style="background:var(--accent-red); margin-top:5px; align-self:flex-start" onclick="addTodo()">+ Add Task</button>
+            </div>
+
+            <div class="card full-width" style="border-top: 4px solid var(--accent-green)">
+                <div class="card-header">📊 Weekly Habits (Mon-Sun)</div>
+                <div id="habitContainer"></div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--accent-orange)">
                 <div class="card-header">⏱️ Focus</div>
-                <select id="timerCategory" class="small-select">
+                <select id="timerCategory" style="margin-bottom:8px;">
                     <option value="💼 工作">💼 工作</option>
                     <option value="📚 学习">📚 学习</option>
                     <option value="👨‍👩‍👧 亲子">👨‍👩‍👧 亲子</option>
                     <option value="🎮 娱乐">🎮 娱乐</option>
                 </select>
-                <div class="timer-display" id="timerDisplay">00:00</div>
-                <button class="btn-action" id="timerBtn" onclick="toggleTimer()">Start</button>
+                <div id="timerDisplay" style="font-size:28px; font-weight:800; text-align:center; margin:5px 0;">00:00</div>
+                <button id="timerBtn" style="background:var(--accent-orange); color:white; border:none; padding:10px; border-radius:10px; font-weight:700;" onclick="toggleTimer()">Start</button>
             </div>
 
-            <div class="card" style="border-top: 4px solid var(--accent-purple); height: 240px;">
-                <div class="card-header">📝 Notes</div>
-                <textarea id="noteInput" placeholder="Quick idea..." style="flex:1; border:none; background:#f9f9fb; border-radius:10px; padding:8px; font-size:14px; resize:none;" oninput="autoSaveNote()"></textarea>
-                <button onclick="saveNote()" style="margin-top:8px; background:var(--accent-purple); color:white; border:none; border-radius:8px; padding:6px; font-size:12px; font-weight:600;">Save</button>
+            <div class="card" style="border-top: 4px solid var(--accent-purple)">
+                <div class="card-header">📖 Notes</div>
+                <select id="noteType" onchange="toggleBook()" style="margin-bottom:5px;">
+                    <option value="随笔">📝 随笔</option>
+                    <option value="读书">📖 读书</option>
+                </select>
+                <input id="bookName" placeholder="书名..." style="display:none; margin-bottom:5px;">
+                <textarea id="noteInput" placeholder="记录灵感..." style="flex:1; resize:none;" oninput="autoSaveNote()"></textarea>
+                <button onclick="saveNote()" style="background:var(--accent-purple); color:white; border:none; border-radius:8px; padding:6px; margin-top:5px; font-weight:600;">Save</button>
+            </div>
+
+            <div class="card full-width" style="border-top: 4px solid #5856d6">
+                <div class="card-header">✍️ Daily Review</div>
+                <textarea id="dailyReviewInput" placeholder="今天有什么值得记录的？(保存后可在 Library 查看)" style="height:60px; resize:none;"></textarea>
+                <button onclick="saveReview()" style="background:#5856d6; color:white; border:none; border-radius:8px; padding:8px; margin-top:8px; font-weight:600;">Save Review</button>
             </div>
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
-                <div class="card-header">🌐 Professional Translator (CN → EN)</div>
-                <textarea id="transInput" class="trans-textarea" placeholder="输入中文想法..."></textarea>
-                <div class="trans-actions">
-                    <button class="trans-btn" onclick="doTrans('oral')">☕ 口语</button>
-                    <button class="trans-btn" style="background:#5856d6" onclick="doTrans('email')">📧 邮件</button>
-                    <button class="trans-btn" style="background:#1c1c1e" onclick="doTrans('presentation')">📊 演示</button>
+                <div class="card-header">🌐 Translator (CN-EN)</div>
+                <textarea id="transInput" style="height:50px; resize:none;" placeholder="输入中文..."></textarea>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
+                    <button class="btn-small" style="background:var(--accent-blue)" onclick="doTrans('oral')">口语</button>
+                    <button class="btn-small" style="background:#5856d6" onclick="doTrans('email')">邮件</button>
+                    <button class="btn-small" style="background:#1c1c1e" onclick="doTrans('presentation')">演示</button>
                 </div>
-                <div id="transResult" class="trans-result">翻译结果将在此显示...</div>
+                <div id="transResult" style="margin-top:10px; font-size:12px; color:#555; background:#f0f7ff; padding:8px; border-radius:8px; border-left:3px solid var(--accent-blue)">...</div>
             </div>
 
         </div>
     </div>
 
     <div id="page-stats" class="page">
-        <div class="card full-width">
-            <div class="card-header">📊 Focus Distribution</div>
-            <canvas id="pieChart" style="max-height: 250px;"></canvas>
-        </div>
-        <div class="card full-width" style="margin-top:15px">
-            <div class="card-header">📈 Weekly Activity</div>
-            <canvas id="barChart" style="max-height: 250px;"></canvas>
-        </div>
+        <div class="card full-width"><canvas id="pieChart" style="max-height: 250px;"></canvas></div>
+        <div class="card full-width" style="margin-top:15px"><canvas id="barChart" style="max-height: 250px;"></canvas></div>
     </div>
 
     <div id="page-library" class="page">
-        <div class="card full-width" style="background: #fff0f6; border:none;">
-            <div class="card-header" style="color:#d52b1e">✨ Random Recall</div>
-            <div id="recallContent" style="font-size:16px; font-weight:600; min-height:60px;">记录是思考的开始。</div>
-        </div>
-        <div id="fullLogList" style="margin-top:15px;"></div>
+        <div id="libraryContainer"></div>
     </div>
 
     <div class="nav-bar">
@@ -177,167 +163,149 @@
     </div>
 
 <script>
-    // --- 1. 配置与习惯数据 ---
-    const HABIT_NAMES = ["多喝水 💧", "运动30min 🏃", "抗糖饮食 🍬", "极简表达 🗣️", "快速行动 ⚡"];
-    const WEEK_DAYS = ["一", "二", "三", "四", "五", "六", "日"];
-    
-    // 获取本周一的日期字符串作为 Key
-    function getWeekKey() {
-        const d = new Date();
-        const day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-        const monday = new Date(d.setDate(diff));
-        return monday.toISOString().split('T')[0];
+    // --- 1. 初始化 & 日历逻辑 ---
+    function initCalendar() {
+        const d = new Date(), month = d.getMonth(), year = d.getFullYear();
+        const firstDay = new Date(year, month, 1).getDay(); // 0 是周日
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const container = document.getElementById('calendarGrid');
+        document.getElementById('calMonthName').innerText = d.toLocaleString('default', { month: 'long' }) + ' ' + year;
+        
+        const heads = ['日','一','二','三','四','五','六'];
+        container.innerHTML = heads.map(h => `<div class="cal-day-head">${h}</div>`).join('');
+        
+        for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
+        for(let i=1; i<=daysInMonth; i++) {
+            const isToday = i === d.getDate();
+            container.innerHTML += `<div class="cal-date ${isToday?'cal-today':''}">${i}</div>`;
+        }
     }
 
-    let habitData = JSON.parse(localStorage.getItem('habits_v6') || '{}');
-    const currentWeekKey = getWeekKey();
-    if(!habitData[currentWeekKey]) habitData[currentWeekKey] = HABIT_NAMES.map(() => Array(7).fill(false));
+    // --- 2. 备忘录逻辑 (Weekly Focus) ---
+    let todos = JSON.parse(localStorage.getItem('todos_v7') || '[]');
+    function renderTodos() {
+        const container = document.getElementById('todoContainer');
+        container.innerHTML = todos.map((t, i) => `
+            <div class="todo-item">
+                <div class="todo-check ${t.done?'done':''}" onclick="toggleTodo(${i})"></div>
+                <input class="todo-text ${t.done?'done':''}" value="${t.text}" onchange="editTodo(${i}, this.value)">
+                <span style="color:#ddd; cursor:pointer;" onclick="deleteTodo(${i})">✕</span>
+            </div>
+        `).join('');
+    }
+    function addTodo() { todos.push({text: '', done: false}); renderTodos(); }
+    function toggleTodo(i) { todos[i].done = !todos[i].done; saveTodos(); }
+    function editTodo(i, val) { todos[i].text = val; saveTodos(); }
+    function deleteTodo(i) { todos.splice(i, 1); saveTodos(); }
+    function saveTodos() { localStorage.setItem('todos_v7', JSON.stringify(todos)); renderTodos(); }
 
-    function renderHabitUI() {
-        const container = document.getElementById('habitContainer');
-        const todayIdx = (new Date().getDay() + 6) % 7; // 0 是周一
-        container.innerHTML = HABIT_NAMES.map((name, hIdx) => `
-            <div class="habit-row">
-                <div class="habit-info">${name}</div>
-                <div class="week-dots">
-                    ${WEEK_DAYS.map((label, dIdx) => {
-                        const isDone = habitData[currentWeekKey][hIdx][dIdx];
-                        const isToday = dIdx === todayIdx;
-                        return `<div class="dot ${isDone?'done':''} ${isToday?'active-day':''}" onclick="toggleDot(${hIdx}, ${dIdx})">${isDone?'✓':label}</div>`;
+    // --- 3. 习惯打卡 (V6 逻辑) ---
+    const HABITS = ["多喝水 💧", "运动30min 🏃", "抗糖饮食 🍬", "极简表达 🗣️", "快速行动 ⚡"];
+    let hData = JSON.parse(localStorage.getItem('habits_v7') || '{}');
+    const getWeekKey = () => {
+        const d = new Date(); d.setDate(d.getDate() - (d.getDay()||7) + 1);
+        return d.toISOString().split('T')[0];
+    };
+    const wkKey = getWeekKey();
+    if(!hData[wkKey]) hData[wkKey] = HABITS.map(() => Array(7).fill(false));
+
+    function renderHabits() {
+        const todayIdx = (new Date().getDay() || 7) - 1;
+        document.getElementById('habitContainer').innerHTML = HABITS.map((name, hIdx) => `
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f2f2f7;">
+                <div style="font-size:13px; font-weight:600; width:80px;">${name}</div>
+                <div style="display:flex; gap:5px;">
+                    ${[0,1,2,3,4,5,6].map(dIdx => {
+                        const done = hData[wkKey][hIdx][dIdx];
+                        const active = dIdx === todayIdx;
+                        return `<div onclick="toggleHabit(${hIdx},${dIdx})" style="width:28px; height:28px; border-radius:50%; border:1.5px solid ${active?'#000':'#e5e5ea'}; background:${done?'var(--accent-green)':'white'}; color:${done?'white':'#ccc'}; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer;">${done?'✓':['一','二','三','四','五','六','日'][dIdx]}</div>`;
                     }).join('')}
                 </div>
             </div>
         `).join('');
     }
+    function toggleHabit(h, d) { hData[wkKey][h][d] = !hData[wkKey][h][d]; localStorage.setItem('habits_v7', JSON.stringify(hData)); renderHabits(); }
 
-    function toggleDot(hIdx, dIdx) {
-        habitData[currentWeekKey][hIdx][dIdx] = !habitData[currentWeekKey][hIdx][dIdx];
-        localStorage.setItem('habits_v6', JSON.stringify(habitData));
-        renderHabitUI();
-        if(navigator.vibrate) navigator.vibrate(40);
+    // --- 4. 笔记 & 总结 ---
+    function toggleBook() { document.getElementById('bookName').style.display = document.getElementById('noteType').value==='读书'?'block':'none'; }
+    function saveNote() {
+        const txt = document.getElementById('noteInput').value.trim();
+        const type = document.getElementById('noteType').value;
+        const book = document.getElementById('bookName').value;
+        if(!txt) return;
+        const content = type==='读书' ? `📖《${book}》: ${txt}` : `📝 ${txt}`;
+        const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
+        logs.unshift({type: 'note', content, date: new Date().toLocaleString()});
+        localStorage.setItem('logs_v7', JSON.stringify(logs));
+        document.getElementById('noteInput').value = '';
+        alert('Saved!');
     }
-    renderHabitUI();
-
-    // --- 2. 计时器逻辑 ---
-    let tInterval = null;
-    let tState = JSON.parse(localStorage.getItem('t_state_v6') || '{"active":false}');
-
-    function toggleTimer() {
-        if(!tState.active) {
-            tState = { active: true, start: Date.now(), cat: document.getElementById('timerCategory').value };
-            tInterval = setInterval(updateTUI, 1000);
-            document.getElementById('timerBtn').innerText = "Stop";
-            document.getElementById('timerBtn').style.background = "#ff3b30";
-        } else {
-            clearInterval(tInterval);
-            const dur = Date.now() - tState.start;
-            saveTRecord(tState.cat, dur);
-            tState = { active: false };
-            document.getElementById('timerBtn').innerText = "Start";
-            document.getElementById('timerBtn').style.background = "var(--accent-orange)";
-            document.getElementById('timerDisplay').innerText = "00:00";
-        }
-        localStorage.setItem('t_state_v6', JSON.stringify(tState));
+    function saveReview() {
+        const val = document.getElementById('dailyReviewInput').value.trim();
+        if(!val) return;
+        const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
+        logs.unshift({type: 'review', content: `✍️ 总结: ${val}`, date: new Date().toLocaleDateString()});
+        localStorage.setItem('logs_v7', JSON.stringify(logs));
+        document.getElementById('dailyReviewInput').value = '';
+        alert('Review Saved!');
     }
 
-    function updateTUI() {
-        const sec = Math.floor((Date.now() - tState.start) / 1000);
-        const m = Math.floor(sec/60).toString().padStart(2,'0');
-        const s = (sec%60).toString().padStart(2,'0');
-        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
-    }
-    if(tState.active) { tInterval = setInterval(updateTUI, 1000); document.getElementById('timerBtn').innerText = "Stop"; document.getElementById('timerBtn').style.background = "#ff3b30"; }
-
-    function saveTRecord(c, ms) {
-        const logs = JSON.parse(localStorage.getItem('t_logs_v6') || '[]');
-        logs.push({c, ms, d: new Date().toISOString()});
-        localStorage.setItem('t_logs_v6', JSON.stringify(logs));
-    }
-
-    // --- 3. 翻译助手 (核心逻辑升级) ---
+    // --- 5. 翻译 (V6 逻辑) ---
     async function doTrans(type) {
         const input = document.getElementById('transInput').value.trim();
-        const key = localStorage.getItem('dk_v6');
-        if(!input || !key) return alert("请输入内容或设置 Key");
-        
-        const resBox = document.getElementById('transResult');
-        resBox.innerText = "Polishing your English...";
-
-        const systemPrompts = {
-            oral: "你是一个地道的英语母语者。请将用户的中文口语翻译成职场沟通中地道、自然的表达，不要翻译腔，要像外企员工茶歇或开会时的表达。",
-            email: "你是一个专业的商务英语专家。请将用户的意思转化为正式、得体、礼貌的商务邮件内容，使用专业的常用外企句式。",
-            presentation: "你是一个顶尖的商业演说家。请将用户的观点转化为在 PPT 或汇报中使用的表达，要简洁、有力（Powerful）、多用动词，具有感染力。"
-        };
-
+        const key = localStorage.getItem('dk_v7');
+        if(!input || !key) return alert("Key or Input Missing");
+        document.getElementById('transResult').innerText = "Thinking...";
+        const prompts = { oral: "地道口语", email: "商务邮件", presentation: "PPT演说" };
         try {
-            const response = await fetch("https://api.deepseek.com/chat/completions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [
-                        { role: "system", content: systemPrompts[type] },
-                        { role: "user", content: `请翻译这段话：${input}` }
-                    ]
-                })
+            const res = await fetch("https://api.deepseek.com/chat/completions", {
+                method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
+                body:JSON.stringify({model:"deepseek-chat",messages:[{role:"system",content:`你是一个商务英语专家。翻译：【${prompts[type]}】`},{role:"user",content:input}]})
             });
-            const data = await response.json();
-            resBox.innerText = data.choices[0].message.content;
-        } catch (e) { resBox.innerText = "Error: 无法连接 API"; }
+            const d = await res.json();
+            document.getElementById('transResult').innerText = d.choices[0].message.content;
+        } catch(e) { document.getElementById('transResult').innerText = "Error"; }
     }
 
-    // --- 4. 笔记与通用 ---
-    function saveNote() {
-        const val = document.getElementById('noteInput').value.trim();
-        if(!val) return;
-        const logs = JSON.parse(localStorage.getItem('n_logs_v6') || '[]');
-        logs.unshift({c: val, d: new Date().toLocaleString()});
-        localStorage.setItem('n_logs_v6', JSON.stringify(logs));
-        document.getElementById('noteInput').value = "";
-        alert("Saved!");
+    // --- 计时器逻辑 (简化版) ---
+    let tInt = null, tActive = false, tStart = 0;
+    function toggleTimer() {
+        if(!tActive) {
+            tStart = Date.now(); tActive = true;
+            tInt = setInterval(() => {
+                const s = Math.floor((Date.now()-tStart)/1000);
+                document.getElementById('timerDisplay').innerText = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            }, 1000);
+            document.getElementById('timerBtn').innerText = "Stop";
+        } else {
+            clearInterval(tInt); tActive = false;
+            document.getElementById('timerBtn').innerText = "Start";
+            const recs = JSON.parse(localStorage.getItem('timer_v7') || '[]');
+            recs.push({c: document.getElementById('timerCategory').value, ms: Date.now()-tStart, d: new Date().toISOString()});
+            localStorage.setItem('timer_v7', JSON.stringify(recs));
+        }
     }
 
+    // --- 页面切换 ---
     function switchPage(p, el) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.getElementById('page-'+p).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         el.classList.add('active');
-        if(p === 'stats') renderCharts();
         if(p === 'library') renderLibrary();
     }
-
-    function setApiKey() {
-        const k = prompt("Enter DeepSeek API Key:", localStorage.getItem('dk_v6') || "");
-        if(k) localStorage.setItem('dk_v6', k.trim());
-    }
-
-    const quotes = [
-        "Focus on being productive instead of busy.",
-        "Your direction is more important than your speed.",
-        "Simplify, then add lightness.",
-        "The secret of getting ahead is getting started.",
-        "Professionalism is the art of getting it done."
-    ];
-    function refreshQuote() { document.getElementById('dailyQuote').innerText = `"${quotes[Math.floor(Math.random()*quotes.length)]}"`; }
-
-    // --- 5. 图表 ---
-    let pChart, bChart;
-    function renderCharts() {
-        const logs = JSON.parse(localStorage.getItem('t_logs_v6') || '[]');
-        const cats = {}; logs.forEach(l => { cats[l.c] = (cats[l.c]||0) + l.ms; });
-        
-        if(pChart) pChart.destroy();
-        pChart = new Chart(document.getElementById('pieChart'), {
-            type: 'doughnut',
-            data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats).map(v=>v/60000), backgroundColor: ['#ff9500','#007aff','#34c759','#af52de'] }] }
-        });
-    }
-
     function renderLibrary() {
-        const notes = JSON.parse(localStorage.getItem('n_logs_v6') || '[]');
-        document.getElementById('fullLogList').innerHTML = notes.map(n => `<div class="card" style="margin-bottom:10px; font-size:14px;">${n.c}<div style="font-size:10px; color:#aaa; margin-top:5px;">${n.d}</div></div>`).join('');
-        if(notes.length > 0) document.getElementById('recallContent').innerText = notes[Math.floor(Math.random()*notes.length)].c;
+        const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
+        document.getElementById('libraryContainer').innerHTML = logs.map(l => `
+            <div class="card" style="margin-bottom:10px;">
+                <div style="font-size:14px;">${l.content}</div>
+                <div style="font-size:10px; color:#aaa; margin-top:5px;">${l.date}</div>
+            </div>
+        `).join('');
     }
+    function setApiKey() { const k = prompt("Key:"); if(k) localStorage.setItem('dk_v7', k.trim()); }
+
+    window.onload = () => { initCalendar(); renderTodos(); renderHabits(); };
 </script>
 </body>
 </html>
