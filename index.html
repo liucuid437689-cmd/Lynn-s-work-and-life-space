@@ -5,125 +5,497 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS</title>
+    <title>My Life OS V5.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f0f2f5;
+            --bg-color: #f2f2f7;
             --card-bg: #ffffff;
-            --text-color: #1d1d1f;
-            --accent-color: #007aff; /* 苹果蓝 */
+            --text-main: #1c1c1e;
+            --text-sub: #8e8e93;
+            --accent-blue: #007aff;
+            --accent-green: #34c759;
+            --accent-orange: #ff9500;
+            --accent-purple: #af52de;
+            --nav-height: 80px;
         }
 
         body {
-            margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            /* 禁用双击缩放 */
-            touch-action: manipulation; 
+            margin: 0; padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            touch-action: manipulation;
+            padding-bottom: var(--nav-height); /* 给底部导航栏留位置 */
+            overflow-x: hidden;
         }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 800;
+        /* --- 顶部名言栏 --- */
+        .quote-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 15px 20px; border-radius: 16px;
+            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+            text-align: center; cursor: pointer; transition: transform 0.1s;
         }
+        .quote-banner:active { transform: scale(0.98); }
+        .quote-text { font-size: 15px; font-weight: 600; line-height: 1.4; }
+        .quote-author { font-size: 12px; opacity: 0.8; margin-top: 5px; }
 
-        /* 🍱 便当盒布局核心 */
+        /* --- 页面容器 --- */
+        .page { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .page.active { display: block; opacity: 1; }
+
+        /* --- 首页布局 (Bento Grid) --- */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .settings-btn { background: none; border: none; font-size: 22px; cursor: pointer; }
+
         .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 电脑端：3列等宽 */
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+            max-width: 1000px; margin: 0 auto;
         }
 
-        /* 卡片通用样式 */
         .card {
-            background: var(--card-bg);
-            border-radius: 24px; /* 大圆角 */
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            height: 400px; /* 固定高度，让它看起来整齐 */
-            transition: transform 0.2s;
-        }
-        
-        .card:active {
-            transform: scale(0.98); /* 手机点击时的微缩效果 */
+            background: var(--card-bg); border-radius: 20px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            display: flex; flex-direction: column; height: 340px;
+            position: relative; overflow: hidden;
         }
 
         .card-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 13px; font-weight: 700; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 6px;
+            color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        .card-content {
-            flex: 1;
-            background: #f9f9f9;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 14px;
+        /* --- 组件样式 --- */
+        select, input, textarea {
+            background: #f2f2f7; border: none; padding: 12px; border-radius: 12px;
+            font-size: 16px; width: 100%; box-sizing: border-box; font-family: inherit; margin-bottom: 8px;
+        }
+        select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent-blue); }
+
+        .btn {
+            padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 15px;
+            cursor: pointer; color: white; transition: 0.2s; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn:active { transform: scale(0.96); }
+
+        /* 计时器特定样式 */
+        .time-display { font-size: 40px; font-weight: 800; text-align: center; margin: 20px 0; font-variant-numeric: tabular-nums; }
+        
+        /* 打卡特定样式 */
+        .habit-item {
+            background: #f8f9fa; border: 1px solid #eee; padding: 14px; border-radius: 14px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .habit-item.done { background: #e8fce8; border-color: #c3e6cb; }
+        .habit-check {
+            width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd;
+            background: white; display: flex; align-items: center; justify-content: center;
+            color: var(--accent-green); font-weight: bold;
+        }
+        .habit-item.done .habit-check { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* --- 底部导航栏 --- */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px; padding: 10px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); z-index: 1000;
+        }
+        .nav-item {
+            flex: 1; text-align: center; color: #ccc; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: 0.2s; padding: 5px 0;
+        }
+        .nav-icon { font-size: 22px; margin-bottom: 2px; display: block; }
+        .nav-item.active { color: var(--text-main); transform: translateY(-2px); }
+        .nav-item.active .nav-icon { color: var(--accent-blue); }
+
+        /* --- 📊 看板页样式 --- */
+        .stats-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        
+        /* --- 📚 阅览室样式 --- */
+        .recall-card {
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+            color: #333; padding: 20px; border-radius: 20px; margin-bottom: 20px;
+        }
+        .recall-title { font-size: 12px; font-weight: 800; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .recall-content { font-size: 16px; font-weight: 600; font-style: italic; line-height: 1.5; }
+        .log-list-full li {
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; justify-content: space-between;
         }
 
-        /* 📱 手机端适配 (关键点) */
+        /* 📱 手机适配 */
         @media (max-width: 768px) {
-            .bento-grid {
-                grid-template-columns: 1fr; /* 手机端：强制变1列 */
-            }
-            .card {
-                height: 300px; /* 手机上稍微矮一点 */
-            }
-            body {
-                padding: 15px; /* 手机边距小一点 */
-            }
+            .bento-grid { grid-template-columns: 1fr; }
+            .card { height: 300px; }
         }
-
-        /* 针对不同模块的配色微调 */
-        .time-card { border-top: 5px solid #ff9f0a; } /* 橙色 */
-        .health-card { border-top: 5px solid #30d158; } /* 绿色 */
-        .notes-card { border-top: 5px solid #bf5af2; } /* 紫色 */
-
     </style>
 </head>
 <body>
 
-    <h1>🚀 My Life OS</h1>
-
-    <div class="bento-grid">
-        
-        <div class="card time-card">
-            <div class="card-header">⏱️ 时间追踪 (Focus)</div>
-            <div class="card-content">
-                这里将放置<br>秒表和状态切换
-            </div>
-        </div>
-
-        <div class="card health-card">
-            <div class="card-header">🥗 饮食与运动 (Body)</div>
-            <div class="card-content">
-                这里将放置<br>红绿灯评价与流水账
-            </div>
-        </div>
-
-        <div class="card notes-card">
-            <div class="card-header">🧠 第二大脑 (Notes)</div>
-            <div class="card-content">
-                这里将放置<br>Markdown 输入框
-            </div>
-        </div>
-
+    <div class="quote-banner" onclick="refreshQuote()">
+        <div class="quote-text" id="dailyQuote">"Stay hungry, stay foolish."</div>
+        <div class="quote-author" id="quoteAuthor">- Steve Jobs</div>
     </div>
 
+    <div id="page-home" class="page active">
+        <div class="header">
+            <h1>My Life OS</h1>
+            <button class="settings-btn" onclick="setApiKey()">⚙️</button>
+        </div>
+
+        <div class="bento-grid">
+            <div class="card" style="border-top: 4px solid var(--accent-orange)">
+                <div class="card-header"><span style="color:var(--accent-orange)">●</span> Focus</div>
+                <select id="timerCategory">
+                    <option value="💼 工作">💼 工作 Work</option>
+                    <option value="📚 学习">📚 学习 Study</option>
+                    <option value="💪 运动">💪 运动 Sport</option>
+                    <option value="🧘 冥想">🧘 冥想 Zen</option>
+                </select>
+                <div class="time-display" id="timerDisplay">00:00:00</div>
+                <button class="btn btn-start" onclick="toggleTimer()" id="timerBtn" style="background:var(--accent-orange)">Start Focus</button>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--accent-green)">
+                <div class="card-header"><span style="color:var(--accent-green)">●</span> Habits</div>
+                <div style="font-size:12px; color:#aaa; text-align:center; margin-bottom:10px;" id="habitDate">Today</div>
+                <div style="flex:1; overflow-y:auto;">
+                    <div class="habit-item" id="h0" onclick="toggleHabit(0)"><div style="font-weight:600">💧 多喝水</div><div class="habit-check"></div></div>
+                    <div class="habit-item" id="h1" onclick="toggleHabit(1)"><div style="font-weight:600">🏃 运动30min</div><div class="habit-check"></div></div>
+                    <div class="habit-item" id="h2" onclick="toggleHabit(2)"><div style="font-weight:600">🍬 抗糖饮食</div><div class="habit-check"></div></div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--accent-purple)">
+                <div class="card-header"><span style="color:var(--accent-purple)">●</span> Notes</div>
+                <div style="display:flex; gap:5px; margin-bottom:5px;">
+                    <select id="noteType" onchange="toggleBook()" style="width:40%"><option value="note">📝 随笔</option><option value="book">📖 读书</option></select>
+                    <input id="bookName" placeholder="书名..." style="width:60%; display:none;">
+                </div>
+                <textarea id="noteInput" placeholder="写点什么..." style="flex:1; resize:none;" oninput="autoSaveNote()"></textarea>
+                <button class="btn" onclick="saveNote()" style="background:var(--accent-purple); margin-top:5px; padding:8px;">Save</button>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--accent-blue)">
+                <div class="card-header"><span style="color:var(--accent-blue)">●</span> AI Trans</div>
+                <textarea id="transInput" placeholder="输入中文..." style="height:60px; resize:none;"></textarea>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:5px;">
+                    <button class="btn" style="background:var(--accent-blue); padding:8px; font-size:12px;" onclick="doTrans('oral')">口语</button>
+                    <button class="btn" style="background:var(--accent-blue); padding:8px; font-size:12px;" onclick="doTrans('email')">邮件</button>
+                    <button class="btn" style="background:#5856d6; padding:8px; font-size:12px;" onclick="doTrans('ppt')">演示</button>
+                </div>
+                <div id="transResult" style="margin-top:10px; font-size:13px; color:#555; height:50px; overflow-y:auto; background:#f9f9f9; padding:5px; border-radius:8px;">...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-stats" class="page">
+        <div class="header"><h1>Dashboard</h1></div>
+        
+        <div class="stats-card">
+            <div class="card-header">🕒 时间去哪了 (Pie)</div>
+            <div class="chart-container"><canvas id="pieChart"></canvas></div>
+        </div>
+
+        <div class="stats-card">
+            <div class="card-header">📈 专注趋势 (Last 7 Days)</div>
+            <div class="chart-container"><canvas id="barChart"></canvas></div>
+        </div>
+    </div>
+
+    <div id="page-library" class="page">
+        <div class="header"><h1>Library</h1><button class="settings-btn" onclick="exportData()">📥</button></div>
+
+        <div class="recall-card" onclick="refreshRecall()">
+            <div class="recall-title">✨ Random Recall (点击刷新)</div>
+            <div class="recall-content" id="recallContent">"还没有笔记哦，快去记录第一条吧！"</div>
+        </div>
+
+        <div style="margin-top:20px;">
+            <div class="card-header">ALL NOTES</div>
+            <ul id="fullLogList" class="log-list-full" style="list-style:none; padding:0;"></ul>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchPage('home', this)">
+            <span class="nav-icon">🏠</span> Home
+        </div>
+        <div class="nav-item" onclick="switchPage('stats', this)">
+            <span class="nav-icon">📊</span> Stats
+        </div>
+        <div class="nav-item" onclick="switchPage('library', this)">
+            <span class="nav-icon">📚</span> Library
+        </div>
+    </div>
+
+<script>
+    // --- 0. 名言数据 (预设 Option A) ---
+    const quotes = [
+        {t: "Stay hungry, stay foolish.", a: "Steve Jobs"},
+        {t: "The only way to do great work is to love what you do.", a: "Steve Jobs"},
+        {t: "Simplicity is the ultimate sophistication.", a: "Leonardo da Vinci"},
+        {t: "Easy choices, hard life. Hard choices, easy life.", a: "Jerzy Gregorek"},
+        {t: "Happiness is a choice, not a result.", a: "Naval Ravikant"},
+        {t: "Wealth is assets that earn while you sleep.", a: "Naval Ravikant"},
+        {t: "Waste no more time arguing what a good man should be. Be one.", a: "Marcus Aurelius"},
+        {t: "He who has a why to live can bear almost any how.", a: "Nietzsche"},
+        {t: "Focus on the process, not the outcome.", a: "Stoic Philosophy"},
+        {t: "Discipline equals freedom.", a: "Jocko Willink"}
+    ];
+    function refreshQuote() {
+        const q = quotes[Math.floor(Math.random() * quotes.length)];
+        document.getElementById('dailyQuote').innerText = `"${q.t}"`;
+        document.getElementById('quoteAuthor').innerText = `- ${q.a}`;
+    }
+    refreshQuote(); // 初始化
+
+    // --- 1. 页面切换逻辑 ---
+    function switchPage(pageId, navEl) {
+        // 隐藏所有页面
+        document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+        // 显示目标页面
+        document.getElementById('page-' + pageId).classList.add('active');
+        // 导航栏高亮
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        navEl.classList.add('active');
+
+        // 如果切到看板，刷新图表
+        if(pageId === 'stats') updateCharts();
+        // 如果切到阅览室，刷新列表和随机回顾
+        if(pageId === 'library') { renderLibrary(); refreshRecall(); }
+    }
+
+    // --- 2. 专注计时器 (逻辑升级) ---
+    let timerState = { start: 0, cat: '', active: false };
+    let timerInt = null;
+    
+    // 恢复状态
+    if(localStorage.getItem('timer_state')) {
+        timerState = JSON.parse(localStorage.getItem('timer_state'));
+        if(timerState.active) {
+            startTimerUI();
+            timerInt = setInterval(updateTimerDisplay, 1000);
+        }
+    }
+
+    function toggleTimer() {
+        if(!timerState.active) {
+            timerState = { start: Date.now(), cat: document.getElementById('timerCategory').value, active: true };
+            localStorage.setItem('timer_state', JSON.stringify(timerState));
+            startTimerUI();
+            timerInt = setInterval(updateTimerDisplay, 1000);
+        } else {
+            clearInterval(timerInt);
+            const dur = Date.now() - timerState.start;
+            saveFocusRecord(timerState.cat, dur);
+            timerState = { start: 0, cat: '', active: false };
+            localStorage.removeItem('timer_state');
+            stopTimerUI();
+        }
+    }
+
+    function updateTimerDisplay() {
+        const diff = Math.floor((Date.now() - timerState.start) / 1000);
+        const h = Math.floor(diff / 3600).toString().padStart(2,'0');
+        const m = Math.floor((diff % 3600) / 60).toString().padStart(2,'0');
+        const s = (diff % 60).toString().padStart(2,'0');
+        document.getElementById('timerDisplay').innerText = `${h}:${m}:${s}`;
+    }
+    
+    function startTimerUI() {
+        document.getElementById('timerBtn').innerText = 'Stop & Save';
+        document.getElementById('timerBtn').style.backgroundColor = '#ff3b30';
+        document.getElementById('timerCategory').disabled = true;
+    }
+    function stopTimerUI() {
+        document.getElementById('timerBtn').innerText = 'Start Focus';
+        document.getElementById('timerBtn').style.backgroundColor = 'var(--accent-orange)';
+        document.getElementById('timerCategory').disabled = false;
+        document.getElementById('timerDisplay').innerText = '00:00:00';
+    }
+    
+    function saveFocusRecord(cat, ms) {
+        if(ms < 1000) return;
+        const recs = JSON.parse(localStorage.getItem('focus_log') || '[]');
+        recs.push({c: cat, t: ms, d: new Date().toISOString()});
+        localStorage.setItem('focus_log', JSON.stringify(recs));
+    }
+
+    // --- 3. 每日打卡 (保持 V4 逻辑) ---
+    const today = new Date().toLocaleDateString();
+    document.getElementById('habitDate').innerText = today;
+    if(localStorage.getItem('h_date') !== today) {
+        localStorage.setItem('h_state', JSON.stringify([false, false, false]));
+        localStorage.setItem('h_date', today);
+    }
+    let hState = JSON.parse(localStorage.getItem('h_state') || '[false,false,false]');
+    
+    function renderHabits() {
+        hState.forEach((done, i) => {
+            const el = document.getElementById('h'+i);
+            const chk = el.querySelector('.habit-check');
+            if(done) { el.classList.add('done'); chk.innerText = '✓'; }
+            else { el.classList.remove('done'); chk.innerText = ''; }
+        });
+    }
+    renderHabits();
+    
+    function toggleHabit(i) {
+        hState[i] = !hState[i];
+        localStorage.setItem('h_state', JSON.stringify(hState));
+        renderHabits();
+        if(hState[i] && navigator.vibrate) navigator.vibrate(50);
+    }
+
+    // --- 4. 笔记系统 (含随机回顾) ---
+    document.getElementById('noteInput').value = localStorage.getItem('note_draft') || '';
+    function toggleBook() { 
+        document.getElementById('bookName').style.display = (document.getElementById('noteType').value==='book')?'block':'none'; 
+    }
+    function autoSaveNote() { localStorage.setItem('note_draft', document.getElementById('noteInput').value); }
+    
+    function saveNote() {
+        const txt = document.getElementById('noteInput').value.trim();
+        if(!txt) return alert("Empty!");
+        const type = document.getElementById('noteType').value;
+        const book = document.getElementById('bookName').value;
+        const content = (type==='book') ? `📖《${book}》: ${txt}` : `📝 ${txt}`;
+        
+        const logs = JSON.parse(localStorage.getItem('notes_log') || '[]');
+        logs.unshift({ c: content, d: new Date().toLocaleString() });
+        localStorage.setItem('notes_log', JSON.stringify(logs));
+        
+        document.getElementById('noteInput').value = '';
+        document.getElementById('bookName').value = '';
+        localStorage.removeItem('note_draft');
+        alert("Saved!");
+    }
+
+    function refreshRecall() {
+        const logs = JSON.parse(localStorage.getItem('notes_log') || '[]');
+        if(logs.length > 0) {
+            const r = logs[Math.floor(Math.random() * logs.length)];
+            document.getElementById('recallContent').innerText = r.c;
+        }
+    }
+    
+    function renderLibrary() {
+        const logs = JSON.parse(localStorage.getItem('notes_log') || '[]');
+        const list = document.getElementById('fullLogList');
+        list.innerHTML = logs.map(l => `<li><span>${l.c}</span><span style="font-size:10px; color:#aaa; margin-left:10px;">${l.d.split(' ')[0]}</span></li>`).join('');
+    }
+
+    // --- 5. 翻译 (逻辑不变) ---
+    function setApiKey() {
+        const k = prompt("DeepSeek Key:", localStorage.getItem('dk')||'');
+        if(k) localStorage.setItem('dk', k.trim());
+    }
+    async function doTrans(t) {
+        const i = document.getElementById('transInput').value;
+        const k = localStorage.getItem('dk');
+        if(!i || !k) return alert("Input or Key missing");
+        document.getElementById('transResult').innerText = "Thinking...";
+        try {
+            const res = await fetch("https://api.deepseek.com/chat/completions", {
+                method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${k}`},
+                body:JSON.stringify({model:"deepseek-chat",messages:[{role:"system",content:`Translate to English (${t})`},{role:"user",content:i}]})
+            });
+            const d = await res.json();
+            document.getElementById('transResult').innerText = d.choices[0].message.content;
+        } catch(e) { document.getElementById('transResult').innerText = "Error"; }
+    }
+
+    // --- 6. 📊 图表绘制 (Chart.js) ---
+    let pieChartInstance = null;
+    let barChartInstance = null;
+
+    function updateCharts() {
+        const recs = JSON.parse(localStorage.getItem('focus_log') || '[]');
+        
+        // 数据处理：分类统计
+        const catStats = {};
+        recs.forEach(r => {
+            if(!catStats[r.c]) catStats[r.c] = 0;
+            catStats[r.c] += r.t;
+        });
+
+        // 绘制饼图
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        if(pieChartInstance) pieChartInstance.destroy();
+        pieChartInstance = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(catStats),
+                datasets: [{
+                    data: Object.values(catStats).map(ms => (ms/60000).toFixed(1)), // 转分钟
+                    backgroundColor: ['#ff9500', '#007aff', '#34c759', '#af52de', '#ff3b30'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 数据处理：最近7天趋势
+        // (这里做一个简化版：按日期聚合)
+        const dateStats = {};
+        const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6-i));
+            return d.toISOString().split('T')[0];
+        });
+        
+        // 初始化0
+        last7Days.forEach(d => dateStats[d] = 0);
+        
+        recs.forEach(r => {
+            const dateStr = r.d.split('T')[0];
+            if(dateStats[dateStr] !== undefined) dateStats[dateStr] += r.t;
+        });
+
+        // 绘制柱状图
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        if(barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: last7Days.map(d => d.slice(5)), // 只显示 MM-DD
+                datasets: [{
+                    label: 'Focus Minutes',
+                    data: Object.values(dateStats).map(ms => (ms/60000).toFixed(0)),
+                    backgroundColor: '#007aff',
+                    borderRadius: 4
+                }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // --- 7. 数据导出 ---
+    function exportData() {
+        const data = {
+            focus: JSON.parse(localStorage.getItem('focus_log')||'[]'),
+            notes: JSON.parse(localStorage.getItem('notes_log')||'[]'),
+            habits: JSON.parse(localStorage.getItem('h_state')||'[]')
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `LifeOS_Backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
+</script>
 </body>
 </html>
