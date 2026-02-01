@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS V7.1</title>
+    <title>My Life OS V7.2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -39,16 +39,25 @@
         }
         .card-header {
             font-size: 12px; font-weight: 700; color: var(--text-sub);
-            margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px; justify-content: space-between;
+            margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        /* --- 组件样式 --- */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; }
-        .cal-date { font-size: 12px; padding: 5px 0; border-radius: 8px; }
-        .cal-today { background: var(--accent-blue); color: white; font-weight: bold; }
+        /* --- 日历样式 (更新) --- */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+        .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; margin-bottom: 5px;}
+        .cal-date { 
+            font-size: 12px; height: 28px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 50%; position: relative; 
+        }
+        /* 上班 (灰色圈) */
+        .cal-work { background: #f2f2f7; color: #333; }
+        /* 假期/周末 (绿色圈) */
+        .cal-holiday { background: #e8fce8; color: var(--accent-green); border: 1px solid #c3e6cb; }
+        /* 今天 (深蓝实心) */
+        .cal-today { background: var(--accent-blue) !important; color: white !important; font-weight: bold; border: none; }
 
+        /* --- 备忘录 --- */
         .todo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .todo-check { width: 18px; height: 18px; border: 1.5px solid #ddd; border-radius: 4px; cursor: pointer; flex-shrink: 0;}
         .todo-check.done { background: var(--accent-blue); border-color: var(--accent-blue); position: relative; }
@@ -56,29 +65,29 @@
         .todo-text { font-size: 14px; flex: 1; border: none; background: transparent; }
         .todo-text.done { text-decoration: line-through; color: var(--text-sub); }
 
+        /* --- 翻译 --- */
+        .trans-textarea { background: #f2f2f7; border: none; padding: 10px; border-radius: 10px; font-size: 14px; width: 100%; box-sizing: border-box; resize: none; }
+        #transResult {
+            margin-top:10px; font-size:13px; color:#333; 
+            background:#f0f7ff; padding:10px; border-radius:8px; 
+            border-left:3px solid var(--accent-blue); min-height: 40px; line-height: 1.5; white-space: pre-wrap;
+        }
+
+        /* --- 通用 --- */
         select, input, textarea {
             background: #f2f2f7; border: none; padding: 10px; border-radius: 10px;
             font-size: 14px; width: 100%; box-sizing: border-box;
         }
-        select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent-blue); }
-
         .btn-small { padding: 6px 12px; border-radius: 8px; border: none; color: white; font-size: 11px; font-weight: 600; cursor: pointer; }
-        .btn-export { background: #5856d6; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
-
-        /* --- 翻译结果样式 --- */
-        #transResult {
-            margin-top:10px; font-size:13px; color:#333; 
-            background:#f0f7ff; padding:10px; border-radius:8px; 
-            border-left:3px solid var(--accent-blue); min-height: 40px; line-height: 1.5;
-        }
+        .btn-export { background: #5856d6; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         /* --- 导航 --- */
         .nav-bar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 380px; height: 65px;
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-radius: 25px; display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 9999;
         }
         .nav-item { text-align: center; color: #bbb; font-size: 11px; font-weight: 600; cursor: pointer; }
         .nav-item.active { color: var(--accent-blue); }
@@ -87,15 +96,26 @@
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* 刷新按钮 */
+        .refresh-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-main); }
     </style>
 </head>
 <body>
 
     <div id="page-home" class="page active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h1 style="margin:0; font-size:24px; font-weight:800;">My Life OS</h1>
+            <button class="refresh-btn" onclick="window.location.reload()">🔄</button>
+        </div>
+
         <div class="grid-container">
             
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
-                <div class="card-header">📅 <span id="calMonthName">Calendar</span></div>
+                <div class="card-header">
+                    <span>📅 <span id="calMonthName">Calendar</span></span>
+                    <span style="font-size:10px; color:#aaa;">🟢休 ⚪班</span>
+                </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
@@ -140,20 +160,21 @@
             </div>
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
-                <div class="card-header">🌐 Translator (CN-EN)</div>
-                <textarea id="transInput" style="height:50px; resize:none;" placeholder="输入中文想法..."></textarea>
+                <div class="card-header">🌐 Translator (CN ➔ EN)</div>
+                <textarea id="transInput" class="trans-textarea" style="height:50px;" placeholder="输入中文想法..."></textarea>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
                     <button class="btn-small" style="background:var(--accent-blue)" onclick="doTrans('oral')">口语</button>
                     <button class="btn-small" style="background:#5856d6" onclick="doTrans('email')">邮件</button>
                     <button class="btn-small" style="background:#1c1c1e" onclick="doTrans('ppt')">演示</button>
                 </div>
-                <div id="transResult">翻译结果将在此显示...</div>
+                <div id="transResult">点击按钮生成英文...</div>
             </div>
 
         </div>
     </div>
 
     <div id="page-stats" class="page">
+        <h2 style="margin:10px 0;">Statistics</h2>
         <div class="card full-width">
             <div class="card-header">🕒 Time Distribution</div>
             <div style="height:250px; position:relative;">
@@ -169,11 +190,9 @@
     </div>
 
     <div id="page-library" class="page">
-        <div class="card full-width" style="background:transparent; box-shadow:none; padding:0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2 style="margin:0; font-size:20px;">Library</h2>
-                <button class="btn-export" onclick="exportData()">📥 Export Data</button>
-            </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0; font-size:22px;">Library</h2>
+            <button class="btn-export" onclick="exportTxt()">📥 导出 TXT</button>
         </div>
         <div id="libraryContainer"></div>
     </div>
@@ -186,7 +205,7 @@
     </div>
 
 <script>
-    // --- 1. 日历逻辑 ---
+    // --- 1. 日历逻辑 (假期版) ---
     function initCalendar() {
         const d = new Date(), month = d.getMonth(), year = d.getFullYear();
         const firstDay = new Date(year, month, 1).getDay();
@@ -200,7 +219,15 @@
         for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
         for(let i=1; i<=daysInMonth; i++) {
             const isToday = i === d.getDate();
-            container.innerHTML += `<div class="cal-date ${isToday?'cal-today':''}">${i}</div>`;
+            const dateObj = new Date(year, month, i);
+            const dayOfWeek = dateObj.getDay();
+            
+            // 简单逻辑：周六日为假期(绿色)，周一至五为工作(灰色)
+            // 如果是今天，覆盖为深蓝色
+            let typeClass = (dayOfWeek === 0 || dayOfWeek === 6) ? 'cal-holiday' : 'cal-work';
+            if (isToday) typeClass = 'cal-today';
+
+            container.innerHTML += `<div class="cal-date ${typeClass}">${i}</div>`;
         }
     }
 
@@ -233,7 +260,7 @@
     if(!hData[wkKey]) hData[wkKey] = HABITS.map(() => Array(7).fill(false));
 
     function renderHabits() {
-        const todayIdx = (new Date().getDay() || 7) - 1; // 周一为0
+        const todayIdx = (new Date().getDay() || 7) - 1;
         document.getElementById('habitContainer').innerHTML = HABITS.map((name, hIdx) => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f2f2f7;">
                 <div style="font-size:12px; font-weight:600; width:80px;">${name}</div>
@@ -273,20 +300,20 @@
         alert('Review Saved!');
     }
 
-    // --- 5. 翻译 (修复后逻辑) ---
+    // --- 5. 翻译 (英文强制修正版) ---
     async function doTrans(type) {
         const input = document.getElementById('transInput').value.trim();
         const key = localStorage.getItem('dk_v7');
         if(!input || !key) return alert("请输入内容并点击右下角设置 Key");
         
         const resBox = document.getElementById('transResult');
-        resBox.innerText = "Thinking...";
+        resBox.innerText = "Generating English...";
         
-        // 区分度极强的 Prompt
+        // 关键：强制 Prompt
         const prompts = { 
-            oral: "你是一个地道的美国人。将用户的话翻译成自然的口语（Oral English），用于同事间轻松交谈，不要太正式。", 
-            email: "你是一个资深商务顾问。将用户的话翻译成正式、得体的商务邮件（Business Email），使用专业的职场句式。", 
-            ppt: "你是一个TED演讲教练。将用户的话翻译成PPT演示文稿（Presentation）上的短句，要求极简、有力（Punchy）、使用强动词。" 
+            oral: "You are a native English speaker. Translate the following Chinese into natural, casual Spoken English for workplace conversations.", 
+            email: "You are a business communication expert. Translate the following Chinese into professional, polite Business English suitable for emails.", 
+            ppt: "You are a presentation coach. Translate the following Chinese into punchy, powerful English phrases suitable for Slide headers or bullet points." 
         };
         
         try {
@@ -296,17 +323,17 @@
                 body:JSON.stringify({
                     model:"deepseek-chat",
                     messages:[
-                        {role:"system",content:prompts[type]},
-                        {role:"user",content:input}
+                        {role:"system",content: prompts[type]},
+                        {role:"user",content: "Translate this Chinese text to English: " + input}
                     ]
                 })
             });
             const d = await res.json();
             resBox.innerText = d.choices[0].message.content;
-        } catch(e) { resBox.innerText = "Error: API 连接失败，请检查 Key 或网络。"; }
+        } catch(e) { resBox.innerText = "Error: API 连接失败"; }
     }
 
-    // --- 6. 计时器 ---
+    // --- 6. 计时器 & 图表 ---
     let tInt = null, tActive = false, tStart = 0;
     function toggleTimer() {
         if(!tActive) {
@@ -327,50 +354,55 @@
         }
     }
 
-    // --- 7. 图表逻辑 (修复版) ---
-    let pChart = null, bChart = null;
+    let pChart, bChart;
     function renderCharts() {
         const logs = JSON.parse(localStorage.getItem('timer_v7') || '[]');
-        if(logs.length === 0) return; // 无数据不渲染
+        if(logs.length === 0) return;
 
-        // 饼图数据
-        const cats = {}; 
-        logs.forEach(l => { cats[l.c] = (cats[l.c]||0) + l.ms; });
+        const cats = {}; logs.forEach(l => { cats[l.c] = (cats[l.c]||0) + l.ms; });
+        const days = {}; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days[d.toISOString().split('T')[0]]=0; }
+        logs.forEach(l => { const k=l.d.split('T')[0]; if(days[k]!==undefined) days[k]+=l.ms; });
 
-        // 柱状图数据 (最近7天)
-        const days = {};
-        const labels = [];
-        for(let i=6; i>=0; i--) {
-            const d = new Date(); d.setDate(d.getDate() - i);
-            const k = d.toISOString().split('T')[0];
-            labels.push(d.getDate() + '日');
-            days[k] = 0;
-        }
-        logs.forEach(l => {
-            const k = l.d.split('T')[0];
-            if(days[k] !== undefined) days[k] += l.ms;
-        });
-
-        // 销毁旧图表防止报错
         if(pChart) pChart.destroy();
         if(bChart) bChart.destroy();
 
-        // 渲染饼图
         pChart = new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats).map(v=>(v/60000).toFixed(1)), backgroundColor: ['#ff9500','#007aff','#34c759','#af52de'] }] },
             options: { maintainAspectRatio: false }
         });
-
-        // 渲染柱状图
         bChart = new Chart(document.getElementById('barChart'), {
             type: 'bar',
-            data: { labels: labels, datasets: [{ label: 'Minutes', data: Object.values(days).map(v=>(v/60000).toFixed(0)), backgroundColor: '#007aff' }] },
+            data: { labels: Object.keys(days).map(d=>d.slice(5)), datasets: [{ label: 'Mins', data: Object.values(days).map(v=>(v/60000).toFixed(0)), backgroundColor: '#007aff' }] },
             options: { maintainAspectRatio: false, scales: {y:{beginAtZero:true}} }
         });
     }
 
-    // --- 8. 页面切换 & 导出 ---
+    // --- 7. 导出 TXT 格式 (新) ---
+    function exportTxt() {
+        const todos = JSON.parse(localStorage.getItem('todos_v7') || '[]');
+        const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
+        const timers = JSON.parse(localStorage.getItem('timer_v7') || '[]');
+        
+        let txt = `MY LIFE OS - DATA BACKUP\nDate: ${new Date().toLocaleString()}\n\n`;
+        
+        txt += `=== 📌 PENDING TASKS ===\n`;
+        todos.forEach(t => txt += `[${t.done?'x':' '}] ${t.text}\n`);
+        
+        txt += `\n=== ⏱️ FOCUS LOG ===\n`;
+        timers.forEach(t => txt += `[${t.d.slice(0,10)}] ${t.c}: ${(t.ms/60000).toFixed(1)} mins\n`);
+        
+        txt += `\n=== 📖 NOTES & REVIEWS ===\n`;
+        logs.forEach(l => txt += `[${l.date}] ${l.content}\n`);
+
+        const blob = new Blob([txt], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `LifeOS_Backup_${new Date().toISOString().slice(0,10)}.txt`;
+        a.click();
+    }
+
+    // --- 页面切换 ---
     function switchPage(p, el) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.getElementById('page-'+p).classList.add('active');
@@ -390,21 +422,7 @@
         `).join('');
     }
 
-    function exportData() {
-        const data = {
-            todos: JSON.parse(localStorage.getItem('todos_v7')),
-            habits: JSON.parse(localStorage.getItem('habits_v7')),
-            timer: JSON.parse(localStorage.getItem('timer_v7')),
-            logs: JSON.parse(localStorage.getItem('logs_v7'))
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `LifeOS_Data_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-    }
-
-    function setApiKey() { const k = prompt("Enter Key:"); if(k) localStorage.setItem('dk_v7', k.trim()); }
+    function setApiKey() { const k = prompt("Enter DeepSeek Key:"); if(k) localStorage.setItem('dk_v7', k.trim()); }
 
     window.onload = () => { initCalendar(); renderTodos(); renderHabits(); };
 </script>
