@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS V7.3 (Fixed Translator)</title>
+    <title>My Life OS V7.4 (Professional Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -43,7 +43,7 @@
             text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        /* --- 日历样式 --- */
+        /* --- 日历样式 (工作/假期版) --- */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; margin-bottom: 5px;}
         .cal-date { 
@@ -52,7 +52,7 @@
         }
         .cal-work { background: #f2f2f7; color: #333; }
         .cal-holiday { background: #e8fce8; color: var(--accent-green); border: 1px solid #c3e6cb; }
-        .cal-today { background: var(--accent-blue) !important; color: white !important; font-weight: bold; border: none; }
+        .cal-today { background: var(--accent-blue) !important; color: white !important; font-weight: bold; }
 
         /* --- 备忘录 --- */
         .todo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -62,27 +62,28 @@
         .todo-text { font-size: 14px; flex: 1; border: none; background: transparent; }
         .todo-text.done { text-decoration: line-through; color: var(--text-sub); }
 
-        /* --- 翻译 --- */
+        /* --- 翻译模块 (核心改动) --- */
         .trans-textarea { background: #f2f2f7; border: none; padding: 10px; border-radius: 10px; font-size: 14px; width: 100%; box-sizing: border-box; resize: none; }
         #transResult {
             margin-top:10px; font-size:13px; color:#333; 
-            background:#f0f7ff; padding:10px; border-radius:8px; 
-            border-left:3px solid var(--accent-blue); min-height: 40px; line-height: 1.5; white-space: pre-wrap;
+            background:#f0f7ff; padding:12px; border-radius:12px; 
+            border-left:4px solid var(--accent-blue); min-height: 50px; line-height: 1.5; white-space: pre-wrap;
+            font-weight: 500;
         }
 
-        /* --- 通用 --- */
+        /* --- 通用按钮 --- */
         select, input, textarea {
             background: #f2f2f7; border: none; padding: 10px; border-radius: 10px;
             font-size: 14px; width: 100%; box-sizing: border-box;
         }
-        .btn-small { padding: 6px 12px; border-radius: 8px; border: none; color: white; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .btn-small { padding: 8px 12px; border-radius: 8px; border: none; color: white; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-export { background: #5856d6; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         /* --- 导航 --- */
         .nav-bar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 380px; height: 65px;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-radius: 25px; display: flex; justify-content: space-around; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 9999;
         }
@@ -106,7 +107,6 @@
         </div>
 
         <div class="grid-container">
-            
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
                 <div class="card-header">
                     <span>📅 <span id="calMonthName">Calendar</span></span>
@@ -157,13 +157,13 @@
 
             <div class="card full-width" style="border-top: 4px solid var(--accent-blue)">
                 <div class="card-header">🌐 Translator (CN ➔ EN)</div>
-                <textarea id="transInput" class="trans-textarea" style="height:50px;" placeholder="输入中文想法..."></textarea>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
-                    <button class="btn-small" style="background:var(--accent-blue)" onclick="doTrans('oral')">口语</button>
-                    <button class="btn-small" style="background:#5856d6" onclick="doTrans('email')">邮件</button>
-                    <button class="btn-small" style="background:#1c1c1e" onclick="doTrans('ppt')">演示</button>
+                <textarea id="transInput" class="trans-textarea" style="height:50px;" placeholder="输入中文意图 (如: 我们得开个会)..."></textarea>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px;">
+                    <button class="btn-small" style="background:#10b981" onclick="doTrans('oral')">口语</button>
+                    <button class="btn-small" style="background:#3b82f6" onclick="doTrans('email')">邮件</button>
+                    <button class="btn-small" style="background:#8b5cf6" onclick="doTrans('ppt')">演示</button>
                 </div>
-                <div id="transResult">点击按钮生成英文...</div>
+                <div id="transResult">选择场景输出地道英文...</div>
             </div>
 
         </div>
@@ -173,15 +173,11 @@
         <h2 style="margin:10px 0;">Statistics</h2>
         <div class="card full-width">
             <div class="card-header">🕒 Time Distribution</div>
-            <div style="height:250px; position:relative;">
-                <canvas id="pieChart"></canvas>
-            </div>
+            <div style="height:250px; position:relative;"><canvas id="pieChart"></canvas></div>
         </div>
         <div class="card full-width" style="margin-top:15px">
              <div class="card-header">📈 7-Day Trend</div>
-             <div style="height:250px; position:relative;">
-                <canvas id="barChart"></canvas>
-            </div>
+             <div style="height:250px; position:relative;"><canvas id="barChart"></canvas></div>
         </div>
     </div>
 
@@ -208,10 +204,8 @@
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const container = document.getElementById('calendarGrid');
         document.getElementById('calMonthName').innerText = d.toLocaleString('default', { month: 'short' }) + ' ' + year;
-        
         const heads = ['S','M','T','W','T','F','S'];
         container.innerHTML = heads.map(h => `<div class="cal-day-head">${h}</div>`).join('');
-        
         for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
         for(let i=1; i<=daysInMonth; i++) {
             const isToday = i === d.getDate();
@@ -252,7 +246,7 @@
     if(!hData[wkKey]) hData[wkKey] = HABITS.map(() => Array(7).fill(false));
 
     function renderHabits() {
-        const todayIdx = (new Date().getDay() || 7) - 1; 
+        const todayIdx = (new Date().getDay() || 7) - 1;
         document.getElementById('habitContainer').innerHTML = HABITS.map((name, hIdx) => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f2f2f7;">
                 <div style="font-size:12px; font-weight:600; width:80px;">${name}</div>
@@ -260,7 +254,7 @@
                     ${['一','二','三','四','五','六','日'].map((label, dIdx) => {
                         const done = hData[wkKey][hIdx][dIdx];
                         const active = dIdx === todayIdx;
-                        return `<div onclick="toggleHabit(${hIdx},${dIdx})" style="width:26px; height:26px; border-radius:50%; border:1.5px solid ${active?'#000':'#e5e5ea'}; background:${done?'var(--accent-green)':'white'}; color:${done?'white':'#ddd'}; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; font-weight:bold;">${done?'✓':label}</div>`;
+                        return `<div onclick="toggleHabit(${hIdx},${dIdx})" style="width:26px; height:26px; border-radius:50%; border:1.5 solid ${active?'#000':'#e5e5ea'}; background:${done?'var(--accent-green)':'white'}; color:${done?'white':'#ddd'}; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; font-weight:bold;">${done?'✓':label}</div>`;
                     }).join('')}
                 </div>
             </div>
@@ -292,26 +286,26 @@
         alert('Review Saved!');
     }
 
-    // --- 5. 翻译 (核心修复版) ---
+    // --- 5. 翻译 (场景化专家 Prompt 修复版) ---
     async function doTrans(type) {
         const input = document.getElementById('transInput').value.trim();
         const key = localStorage.getItem('dk_v7');
         if(!input || !key) return alert("请输入内容并点击右下角设置 Key");
         
         const resBox = document.getElementById('transResult');
-        resBox.innerText = "Thinking...";
+        resBox.innerHTML = '<span style="color:#666">AI Thinking...</span>';
         
-        // --- 强制场景化 Prompt ---
-        // Oral: 口语化，地道
-        // Email: 正式商务邮件
-        // PPT: 演示文稿，简短有力
+        // --- 核心修复：根据类型定义极其明确的系统人设 ---
         let systemPrompt = "";
         if (type === 'oral') {
-            systemPrompt = "You are an English teacher. Translate the user's Chinese text into natural, spoken English suitable for workplace conversations.";
+            // 口语：地道、自然、习语化、适合 MNC 办公室咖啡时间或同步会议
+            systemPrompt = "You are a professional in a Fortune 500 company. Translate the user's Chinese thoughts into natural, idiomatic, and spoken English used in a casual office setting (like a coffee chat or a quick sync). Avoid textbook language. Use common idioms or office slang if appropriate.";
         } else if (type === 'email') {
-            systemPrompt = "You are a business expert. Translate the user's Chinese text into professional, polite Business English suitable for emails.";
+            // 邮件：正式、得体、礼貌、符合商务写作规范
+            systemPrompt = "You are a senior business communication expert. Translate the user's Chinese thoughts into a professional, polite, and formal Business Email. Use standard corporate vocabulary and etiquette (e.g., 'Please find attached', 'Looking forward to').";
         } else if (type === 'ppt') {
-            systemPrompt = "You are a presentation coach. Translate the user's Chinese text into punchy, powerful English phrases suitable for slide bullet points.";
+            // 演示：简练、强力、高影响力动词、适合 Slide 标题或要点
+            systemPrompt = "You are a top-tier presentation consultant. Translate the user's Chinese thoughts into punchy, high-impact English phrases suitable for PowerPoint slides. Use 'Power Verbs' (e.g., Accelerate, Drive, Pivot, Leverage). Keep it concise and visually impactful.";
         }
 
         try {
@@ -321,18 +315,15 @@
                 body:JSON.stringify({
                     model:"deepseek-chat",
                     messages:[
-                        {role:"system",content: systemPrompt},
-                        {role:"user",content: "Translate this Chinese sentence to English: " + input}
-                    ]
+                        {role:"system",content: systemPrompt + " Return only the English translation. No preamble, no explanation."},
+                        {role:"user",content: "Translate this to professional English: " + input}
+                    ],
+                    temperature: 0.7
                 })
             });
             const d = await res.json();
-            // 直接显示返回的内容
             resBox.innerText = d.choices[0].message.content;
-        } catch(e) { 
-            console.error(e);
-            resBox.innerText = "Error: API 连接失败"; 
-        }
+        } catch(e) { resBox.innerText = "Error: API 响应失败"; }
     }
 
     // --- 6. 计时器 & 图表 ---
@@ -360,14 +351,11 @@
     function renderCharts() {
         const logs = JSON.parse(localStorage.getItem('timer_v7') || '[]');
         if(logs.length === 0) return;
-
         const cats = {}; logs.forEach(l => { cats[l.c] = (cats[l.c]||0) + l.ms; });
         const days = {}; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days[d.toISOString().split('T')[0]]=0; }
         logs.forEach(l => { const k=l.d.split('T')[0]; if(days[k]!==undefined) days[k]+=l.ms; });
-
         if(pChart) pChart.destroy();
         if(bChart) bChart.destroy();
-
         pChart = new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats).map(v=>(v/60000).toFixed(1)), backgroundColor: ['#ff9500','#007aff','#34c759','#af52de'] }] },
@@ -380,23 +368,18 @@
         });
     }
 
-    // --- 7. 导出 TXT 格式 (新) ---
+    // --- 7. 导出 TXT 格式 ---
     function exportTxt() {
         const todos = JSON.parse(localStorage.getItem('todos_v7') || '[]');
         const logs = JSON.parse(localStorage.getItem('logs_v7') || '[]');
         const timers = JSON.parse(localStorage.getItem('timer_v7') || '[]');
-        
         let txt = `MY LIFE OS - DATA BACKUP\nDate: ${new Date().toLocaleString()}\n\n`;
-        
         txt += `=== 📌 PENDING TASKS ===\n`;
         todos.forEach(t => txt += `[${t.done?'x':' '}] ${t.text}\n`);
-        
         txt += `\n=== ⏱️ FOCUS LOG ===\n`;
         timers.forEach(t => txt += `[${t.d.slice(0,10)}] ${t.c}: ${(t.ms/60000).toFixed(1)} mins\n`);
-        
         txt += `\n=== 📖 NOTES & REVIEWS ===\n`;
         logs.forEach(l => txt += `[${l.date}] ${l.content}\n`);
-
         const blob = new Blob([txt], {type: 'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -404,7 +387,7 @@
         a.click();
     }
 
-    // --- 页面切换 ---
+    // --- 8. 页面切换 ---
     function switchPage(p, el) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.getElementById('page-'+p).classList.add('active');
