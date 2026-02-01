@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Life OS V7.2</title>
+    <title>My Life OS V7.3 (Fixed Translator)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -43,18 +43,15 @@
             text-transform: uppercase; letter-spacing: 0.5px;
         }
 
-        /* --- 日历样式 (更新) --- */
+        /* --- 日历样式 --- */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         .cal-day-head { font-size: 10px; color: var(--text-sub); font-weight: bold; margin-bottom: 5px;}
         .cal-date { 
             font-size: 12px; height: 28px; display: flex; align-items: center; justify-content: center; 
             border-radius: 50%; position: relative; 
         }
-        /* 上班 (灰色圈) */
         .cal-work { background: #f2f2f7; color: #333; }
-        /* 假期/周末 (绿色圈) */
         .cal-holiday { background: #e8fce8; color: var(--accent-green); border: 1px solid #c3e6cb; }
-        /* 今天 (深蓝实心) */
         .cal-today { background: var(--accent-blue) !important; color: white !important; font-weight: bold; border: none; }
 
         /* --- 备忘录 --- */
@@ -97,7 +94,6 @@
         .page.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* 刷新按钮 */
         .refresh-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-main); }
     </style>
 </head>
@@ -205,7 +201,7 @@
     </div>
 
 <script>
-    // --- 1. 日历逻辑 (假期版) ---
+    // --- 1. 日历逻辑 ---
     function initCalendar() {
         const d = new Date(), month = d.getMonth(), year = d.getFullYear();
         const firstDay = new Date(year, month, 1).getDay();
@@ -221,12 +217,8 @@
             const isToday = i === d.getDate();
             const dateObj = new Date(year, month, i);
             const dayOfWeek = dateObj.getDay();
-            
-            // 简单逻辑：周六日为假期(绿色)，周一至五为工作(灰色)
-            // 如果是今天，覆盖为深蓝色
             let typeClass = (dayOfWeek === 0 || dayOfWeek === 6) ? 'cal-holiday' : 'cal-work';
             if (isToday) typeClass = 'cal-today';
-
             container.innerHTML += `<div class="cal-date ${typeClass}">${i}</div>`;
         }
     }
@@ -260,7 +252,7 @@
     if(!hData[wkKey]) hData[wkKey] = HABITS.map(() => Array(7).fill(false));
 
     function renderHabits() {
-        const todayIdx = (new Date().getDay() || 7) - 1;
+        const todayIdx = (new Date().getDay() || 7) - 1; 
         document.getElementById('habitContainer').innerHTML = HABITS.map((name, hIdx) => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f2f2f7;">
                 <div style="font-size:12px; font-weight:600; width:80px;">${name}</div>
@@ -300,22 +292,28 @@
         alert('Review Saved!');
     }
 
-    // --- 5. 翻译 (英文强制修正版) ---
+    // --- 5. 翻译 (核心修复版) ---
     async function doTrans(type) {
         const input = document.getElementById('transInput').value.trim();
         const key = localStorage.getItem('dk_v7');
         if(!input || !key) return alert("请输入内容并点击右下角设置 Key");
         
         const resBox = document.getElementById('transResult');
-        resBox.innerText = "Generating English...";
+        resBox.innerText = "Thinking...";
         
-        // 关键：强制 Prompt
-        const prompts = { 
-            oral: "You are a native English speaker. Translate the following Chinese into natural, casual Spoken English for workplace conversations.", 
-            email: "You are a business communication expert. Translate the following Chinese into professional, polite Business English suitable for emails.", 
-            ppt: "You are a presentation coach. Translate the following Chinese into punchy, powerful English phrases suitable for Slide headers or bullet points." 
-        };
-        
+        // --- 强制场景化 Prompt ---
+        // Oral: 口语化，地道
+        // Email: 正式商务邮件
+        // PPT: 演示文稿，简短有力
+        let systemPrompt = "";
+        if (type === 'oral') {
+            systemPrompt = "You are an English teacher. Translate the user's Chinese text into natural, spoken English suitable for workplace conversations.";
+        } else if (type === 'email') {
+            systemPrompt = "You are a business expert. Translate the user's Chinese text into professional, polite Business English suitable for emails.";
+        } else if (type === 'ppt') {
+            systemPrompt = "You are a presentation coach. Translate the user's Chinese text into punchy, powerful English phrases suitable for slide bullet points.";
+        }
+
         try {
             const res = await fetch("https://api.deepseek.com/chat/completions", {
                 method:"POST", 
@@ -323,14 +321,18 @@
                 body:JSON.stringify({
                     model:"deepseek-chat",
                     messages:[
-                        {role:"system",content: prompts[type]},
-                        {role:"user",content: "Translate this Chinese text to English: " + input}
+                        {role:"system",content: systemPrompt},
+                        {role:"user",content: "Translate this Chinese sentence to English: " + input}
                     ]
                 })
             });
             const d = await res.json();
+            // 直接显示返回的内容
             resBox.innerText = d.choices[0].message.content;
-        } catch(e) { resBox.innerText = "Error: API 连接失败"; }
+        } catch(e) { 
+            console.error(e);
+            resBox.innerText = "Error: API 连接失败"; 
+        }
     }
 
     // --- 6. 计时器 & 图表 ---
