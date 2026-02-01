@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>My Life OS</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --accent-color: #007aff; /* 苹果蓝 */
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            /* 禁用双击缩放 */
+            touch-action: manipulation; 
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        /* 🍱 便当盒布局核心 */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 电脑端：3列等宽 */
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 卡片通用样式 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px; /* 大圆角 */
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            height: 400px; /* 固定高度，让它看起来整齐 */
+            transition: transform 0.2s;
+        }
+        
+        .card:active {
+            transform: scale(0.98); /* 手机点击时的微缩效果 */
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-content {
+            flex: 1;
+            background: #f9f9f9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* 📱 手机端适配 (关键点) */
+        @media (max-width: 768px) {
+            .bento-grid {
+                grid-template-columns: 1fr; /* 手机端：强制变1列 */
+            }
+            .card {
+                height: 300px; /* 手机上稍微矮一点 */
+            }
+            body {
+                padding: 15px; /* 手机边距小一点 */
+            }
+        }
+
+        /* 针对不同模块的配色微调 */
+        .time-card { border-top: 5px solid #ff9f0a; } /* 橙色 */
+        .health-card { border-top: 5px solid #30d158; } /* 绿色 */
+        .notes-card { border-top: 5px solid #bf5af2; } /* 紫色 */
+
+    </style>
+</head>
+<body>
+
+    <h1>🚀 My Life OS</h1>
+
+    <div class="bento-grid">
+        
+        <div class="card time-card">
+            <div class="card-header">⏱️ 时间追踪 (Focus)</div>
+            <div class="card-content">
+                这里将放置<br>秒表和状态切换
+            </div>
+        </div>
+
+        <div class="card health-card">
+            <div class="card-header">🥗 饮食与运动 (Body)</div>
+            <div class="card-content">
+                这里将放置<br>红绿灯评价与流水账
+            </div>
+        </div>
+
+        <div class="card notes-card">
+            <div class="card-header">🧠 第二大脑 (Notes)</div>
+            <div class="card-content">
+                这里将放置<br>Markdown 输入框
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
